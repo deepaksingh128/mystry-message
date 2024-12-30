@@ -4,22 +4,19 @@ import bcrypt from 'bcryptjs'
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 
 export async function POST(request: Request) {
-    await dbConnect;
-
+    await dbConnect();
     try {
         const { username, email, password } = await request.json();
         const existingUserVerifiedByUsername = await UserModel.findOne({
             username,
             isVerified: true
         });
-
         if(existingUserVerifiedByUsername) {
             return Response.json({
                 success: false,
                 message: "Username is already taken"
             }, { status: 400 })
         }
-
         const existingUserByEmail = await UserModel.findOne({ email });
         const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -35,7 +32,6 @@ export async function POST(request: Request) {
                 existingUserByEmail.verifyCode = verifyCode;
                 existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
                 // existingUserByEmail.username = username; // should i do this as well
-
                 await existingUserByEmail.save();
             }
         } else {
@@ -53,7 +49,6 @@ export async function POST(request: Request) {
                 isAcceptingMessage: true,
                 messages: []
             });
-
             await newUser.save();
         }
 
